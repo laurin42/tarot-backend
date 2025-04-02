@@ -1,1 +1,0 @@
-ALTER TABLE "users" ALTER COLUMN "auth_id" SET DATA TYPE text;
