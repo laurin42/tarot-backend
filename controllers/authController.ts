@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { db } from "../db";
 import { usersTable } from "../db/schema";
 import { eq } from "drizzle-orm";
-import { jwtDecode } from "jwt-decode";
+import { verifyToken } from "../middleware/auth";
 import { generateToken } from "../middleware/auth";
 import { asyncHandler } from "../utils/errorHandler";
 
@@ -20,7 +20,7 @@ export const authController = {
     
     if (authProvider === "google") {
       try {
-        const decoded: any = jwtDecode(authId);
+        const decoded: any = await verifyToken(authId);
         
         if (decoded.sub) {
           stableAuthId = `google|${decoded.sub}`;
@@ -37,7 +37,7 @@ export const authController = {
           picture = decoded.picture;
         }
       } catch (decodeError) {
-        console.error("❌ Failed to decode Google token:", decodeError);
+        console.error("❌ Failed to verify Google token:", decodeError);
       }
     }
     
