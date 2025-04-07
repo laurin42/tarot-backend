@@ -16,15 +16,33 @@ dotenvFlow.config();
 const app = express();
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8000;
 
+// Konfiguriere CORS
+const corsOptions = {
+  origin: '*', // Erlaube Anfragen von deinem Frontend
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Erlaubte Methoden
+  allowedHeaders: ["Content-Type", "Authorization"], // Erlaube notwendige Header
+  credentials: true // Falls du Cookies oder Authentifizierungsheader brauchst
+};
+
 // Middleware
-app.use(cors({
-  origin: '*',  // In Produktion einschränken!
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Base route for server health check
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'Server is running',
+    message: 'Welcome to the Tarot API!',
+    timestamp: new Date().toISOString(),
+    // Optional: Füge hier eine Liste deiner Haupt-Endpunkte hinzu
+    endpoints: {
+      auth: '/auth',
+      users: '/users',
+      tarot: '/tarot'
+    }
+  });
+});
 
 // Routes
 app.use('/auth', authRoutes);
@@ -48,3 +66,5 @@ app.get('/debug-sentry', (_req, _res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+export default app; // Export für Tests oder andere Module
