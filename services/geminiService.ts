@@ -6,11 +6,12 @@ export class GeminiService {
   private _model;
 
   constructor() {
-    const genAI = new GoogleGenerativeAI(process.env.API_KEY || "") || (() => {
-      console.error("API_KEY not found in environment");
-      console.log(process.env.API_KEY);
-      throw new Error("API_KEY is required");
-    })()
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY not found in environment variables!");
+      throw new Error("GEMINI_API_KEY is required");
+    }
+    const genAI = new GoogleGenerativeAI(apiKey);
     
     this._model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   }
@@ -40,8 +41,12 @@ export class GeminiService {
       const response = await this._model.generateContent(prompt);
       return this.processGeminiResponse(response);
     } catch (error) {
-      console.error("Failed to generate content:", error);
-      return "Keine Antwort erhalten";
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Failed to generate content:", errorMessage, error);
+      if (error && typeof error === 'object' && 'status' in error) {
+         console.error(`Google API Error Status: ${error.status}`);
+      }
+      return "Entschuldigung, bei der Generierung der Antwort ist ein Fehler aufgetreten.";
     }
   }
 
@@ -51,8 +56,19 @@ export class GeminiService {
   }
 }
 
-// Exportiere eine Singleton-Instanz
-export const geminiService = new GeminiService();
+// LAZY INITIALIZATION:
+// Store the instance here, initially null
+let geminiServiceInstance: GeminiService | null = null;
 
-// Exportiere auch das model direkt für bestehende Imports
-export const model = geminiService.model;
+// Function to get the singleton instance, creates it on first call
+export function getGeminiService(): GeminiService {
+  if (!geminiServiceInstance) {
+    console.log("Instantiating GeminiService..."); // Log instantiation
+    geminiServiceInstance = new GeminiService();
+  }
+  return geminiServiceInstance;
+}
+
+// REMOVE immediate instantiation and export
+// export const geminiService = new GeminiService();
+// export const model = geminiService.model;

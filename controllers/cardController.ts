@@ -24,13 +24,13 @@ export const cardController = {
       throw new Error("Es wurde keine Beschreibung generiert");
     }
 
-    // Karte in DB speichern
+    // Karte in DB speichern - pass null as userId since auth is removed
     const newCard = await cardService.saveCard(
-      req.user?.id ? parseInt(req.user.id) : 0,
+      null, // Pass null for userId
       card.name,
       description,
       null,
-      null
+      null // Or maybe a guest session ID if needed?
     );
     
     res.status(201).json(newCard[0]);
@@ -39,53 +39,41 @@ export const cardController = {
   // Karte aus URL-Parameter interpretieren
   getCardByName: asyncHandler(async (req: Request, res: Response) => {
     const cardName = decodeURIComponent(req.params.cardName);
-    let userGoals = "";
+    // Remove user-specific logic as req.user is no longer set
+    // const userId = req.user?.id ? parseInt(req.user.id) : null;
+    // let userGoals = "";
+    // if (userId) {
+    //   const { context } = await cardService.buildPersonalContextForUser(userId);
+    //   userGoals = context;
+    // }
     
-    // Benutzerziele aus DB holen, falls angemeldet
-    if (req.user?.id) {
-      const { context } = await cardService.buildPersonalContextForUser(parseInt(req.user.id));
-      userGoals = context;
-    }
-    
-    const explanation = await cardService.interpretCard(cardName, userGoals);
+    // Always call interpretCard without user goals
+    const explanation = await cardService.interpretCard(cardName);
     
     res.json({ 
       explanation,
-      goalsIncluded: userGoals ? true : false
+      goalsIncluded: false // Goals are never included now
     });
   }),
 
   // Zusammenfassung für mehrere Karten erstellen
   createSummary: asyncHandler(async (req: Request<{}, {}, CardRequest>, res: Response) => {
     const { cards } = req.body;
-    let personalContext = "";
-    let profileInfo = {
-      goals: false,
-      gender: false,
-      zodiac: false,
-      age: false
-    };
-    
+    // Remove user-specific logic as req.user is no longer set
+    // let personalContext = "";
+    // let profileInfo = { /* ... */ };
+    // const userId = req.user?.id ? parseInt(req.user.id) : null;
+    // if (userId) { /* ... */ }
+    // if (!personalContext && req.body.userGoals) { /* ... */ }
+
     if (!cards || !Array.isArray(cards) || cards.length === 0) {
       throw new Error('Invalid or empty cards array received');
     }
 
     const cardNames = cards.map(card => card.name);
     
-    // Benutzerkontext hinzufügen, falls angemeldet
-    if (req.user?.id) {
-      const contextData = await cardService.buildPersonalContextForUser(parseInt(req.user.id));
-      personalContext = contextData.context;
-      profileInfo = contextData.profileInfo;
-    }
-    
-    // Fallback zu Request-Goals, falls keine DB-Goals
-    if (!personalContext && req.body.userGoals) {
-      personalContext = `Ziele der Person: ${req.body.userGoals}. `;
-      profileInfo.goals = true;
-    }
-    
-    const summary = await cardService.interpretCardSet(cardNames, personalContext);
+    // Always call interpretCardSet without personal context
+    const summary = await cardService.interpretCardSet(cardNames);
 
     if (!summary) {
       throw new Error("Es wurde keine Zusammenfassung generiert");
@@ -95,21 +83,20 @@ export const cardController = {
       success: true,
       summary,
       cards: cardNames,
-      profileInfoIncluded: profileInfo
+      // Indicate that no profile info was used
+      profileInfoIncluded: { goals: false, gender: false, zodiac: false, age: false }
     });
   }),
 
   // Gezogene Karte speichern
   saveDrawnCard: asyncHandler(async (req: Request, res: Response) => {
     const { name, description, position = null, sessionId = null } = req.body;
-    const userId = req.user?.id ? parseInt(req.user.id) : null;
-    
-    if (!userId) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
+    // Remove userId check and pass null
+    // const userId = req.user?.id ? parseInt(req.user.id) : null;
+    // if (!userId) { return res.status(401).json({ error: "Authentication required" }); }
     
     const result = await cardService.saveCard(
-      userId, name, description, position, sessionId
+      null, name, description, position, sessionId // Pass null for userId
     );
     
     res.status(201).json(result[0]);
@@ -118,13 +105,13 @@ export const cardController = {
   // Lesungszusammenfassung speichern
   saveReadingSummary: asyncHandler(async (req: Request, res: Response) => {
     const { sessionId, summary } = req.body;
-    const userId = req.user?.id ? parseInt(req.user.id) : null;
+    // Remove userId check and pass null
+    // const userId = req.user?.id ? parseInt(req.user.id) : null;
+    // if (!userId) { return res.status(401).json({ error: "Authentication required" }); }
     
-    if (!userId) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-    
-    const result = await cardService.saveReadingSummary(userId, sessionId, summary);
+    const result = await cardService.saveReadingSummary(
+      null, sessionId, summary // Pass null for userId
+    );
     
     res.status(201).json(result[0]);
   })

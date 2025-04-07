@@ -6,9 +6,7 @@ import * as Sentry from '@sentry/node';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 // Route imports
-import authRoutes from './routes/authRoutes';
 import tarotRoutes from './routes/tarotRoutes';
-import userRoutes from './routes/userRoutes';
 
 // Load environment variables
 dotenvFlow.config();
@@ -35,19 +33,14 @@ app.get('/', (req, res) => {
     status: 'Server is running',
     message: 'Welcome to the Tarot API!',
     timestamp: new Date().toISOString(),
-    // Optional: Füge hier eine Liste deiner Haupt-Endpunkte hinzu
     endpoints: {
-      auth: '/auth',
-      users: '/users',
       tarot: '/tarot'
     }
   });
 });
 
 // Routes
-app.use('/auth', authRoutes);
 app.use('/tarot', tarotRoutes);
-app.use('/users', userRoutes);
 
 // Sentry request handler must be one of the first middlewares
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {

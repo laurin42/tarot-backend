@@ -1,7 +1,7 @@
 import { db } from "../db";
 import { drawnCardsTable, usersTable } from "../db/schema";
 import { eq } from "drizzle-orm";
-import { geminiService } from "./geminiService";
+import { getGeminiService } from "./geminiService";
 
 export class CardService {
   // Karte deuten
@@ -12,6 +12,7 @@ export class CardService {
       userGoals ? `Berücksichtige bei der Deutung folgende Ziele des Users: ${userGoals}.` : ""
     } ${cardReadingPrompt}`;
 
+    const geminiService = getGeminiService();
     return await geminiService.generateContent(prompt);
   }
 
@@ -31,6 +32,7 @@ export class CardService {
     ${thirdCard} ein Lösungsansatz oder Weisung (Perspektive).
     Die Interpretation soll motivierend und aufschlussreich sein.`;
 
+    const geminiService = getGeminiService();
     return await geminiService.generateContent(prompt);
   }
 
@@ -102,8 +104,8 @@ export class CardService {
   }
   
   // Karte in der Datenbank speichern
-  async saveCard(userId: number, name: string, description: string, position: number | null = null, sessionId: string | null = null) {
-    const actualSessionId = sessionId || `session_${Date.now()}`;
+  async saveCard(userId: number | null, name: string, description: string, position: number | null = null, sessionId: string | null = null) {
+    const actualSessionId = sessionId || `guest_session_${Date.now()}`;
     
     return await db.insert(drawnCardsTable).values({
       name,
@@ -116,7 +118,7 @@ export class CardService {
   }
 
   // Zusammenfassung in der Datenbank speichern
-  async saveReadingSummary(userId: number, sessionId: string, summary: string) {
+  async saveReadingSummary(userId: number | null, sessionId: string, summary: string) {
     return await db.insert(drawnCardsTable).values({
       name: "Reading Summary",
       description: summary,
