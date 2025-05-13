@@ -1,6 +1,16 @@
 # Tarot App Backend
 
-A Node.js/TypeScript backend service for the Tarot App, providing API endpoints for card readings and user management.
+A Node.js/TypeScript backend service for the Tarot App, providing API endpoints for card readings and user management.#
+
+## Commit History & Project Structure
+Initially, this project was created as a single repository containing both the backend and frontend. Later, it was split into two separate repositories to improve the separation of concerns between the frontend and backend.
+
+Unfortunately, during this restructuring, some commits were lost. The current commit history reflects the changes made after the split, with the original commit messages and order being preserved as much as possible.
+
+Despite the lost commits, the codebase remains stable and continues to meet the project's initial objectives.
+
+Contributing
+Feel free to open issues or pull requests if you'd like to contribute. Please follow the coding standards and ensure clear, descriptive commit messages.
 
 ## Features
 
